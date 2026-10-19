@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Happiness Box — Chocolate Gift Studio
 
-## Getting Started
+A chocolate gift box shop with a 3D box customizer. Customers pick a box, add extra chocolates (drag-and-drop on desktop, tap on mobile), see the live total and order through WhatsApp. No database, accounts or online payments.
 
-First, run the development server:
+Built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, React Three Fiber / Drei / Three.js, GSAP, Motion and Zustand.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000 (use `npx next dev -p 3100` if 3000 is busy)
+npm run build      # production build
+npm run lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Before going live — edit these
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| What | Where |
+| --- | --- |
+| WhatsApp business number | `NEXT_PUBLIC_WHATSAPP_NUMBER` env var (digits, e.g. `947XXXXXXXX`), or `src/config/site.ts` |
+| Site URL (SEO, sitemap) | `NEXT_PUBLIC_SITE_URL` env var |
+| Brand name, tagline | `src/config/site.ts` (currently a placeholder name) |
+| Gift boxes, prices, contents | `src/config/giftBoxes.ts` |
+| Extra items and their prices | `src/config/items.ts` — **all extra prices are placeholders**; set the real price and `priceIsPlaceholder: false` |
+| Gift extras (card, ribbon) | `src/config/items.ts` — set `available: false` if you don't offer them |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Box prices come from the reference photos. Box contents list only what the photos show; quantities are given only where they're clearly visible.
 
-## Learn More
+## How capacity works
 
-To learn more about Next.js, take a look at the following resources:
+Each box floor is a grid of 2 cm cells with two stackable layers (`grid` in `giftBoxes.ts`). Each item takes a footprint of cells (`footprint` in `items.ts`). The pictured contents are packed first; extras go into the first free spot, and an item that won't fit is refused with a message. Change `grid` to allow more or fewer extras.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project layout
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/config/        business data (boxes, items, settings)
+src/lib/           pricing, packing, WhatsApp message, formatting
+src/store/         builder state (Zustand, saved in localStorage)
+src/components/
+  three/           3D box, product models, hero scene (procedural, no model downloads)
+  customizer/      studio: selector, stage, summary, flight animation, flat fallback
+  home/ collection/ layout/ ui/
+scripts/           crop-reference-photos.py — regenerates images in public/images
+```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If WebGL is unavailable or the 3D view fails, the studio switches to a top-down photo view automatically. Animations respect "reduce motion".
